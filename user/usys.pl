@@ -44,3 +44,5 @@ entry("pause");
 entry("uptime");
 entry("poweroff");
 entry("trace");
+entry("sigalarm");
+entry("sigreturn");

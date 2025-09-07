@@ -25,6 +25,9 @@ char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
 int trace(int);
+int poweroff(void);
+int sigalarm(int ticks, void (*handler)());
+int sigreturn(void);
 
 // ulib.c
 int stat(const char*, struct stat*);
@@ -52,6 +55,3 @@ int scanf(const char*, ...) __attribute__ ((format (scanf, 1, 2)));
 // umalloc.c
 void* malloc(uint);
 void free(void*);
-
-// sys.c
-uint64 poweroff(void);

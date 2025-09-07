@@ -80,29 +80,31 @@ argstr(int n, char *buf, int max)
 }
 
 #define SYSCALL_LIST \
-    X(SYS_fork,     fork) \
-    X(SYS_exit,     exit) \
-    X(SYS_wait,     wait) \
-    X(SYS_pipe,     pipe) \
-    X(SYS_read,     read) \
-    X(SYS_kill,     kill) \
-    X(SYS_exec,     exec) \
-    X(SYS_fstat,    fstat) \
-    X(SYS_chdir,    chdir) \
-    X(SYS_dup,      dup) \
-    X(SYS_getpid,   getpid) \
-    X(SYS_sbrk,     sbrk) \
-    X(SYS_pause,    pause) \
-    X(SYS_uptime,   uptime) \
-    X(SYS_open,     open) \
-    X(SYS_write,    write) \
-    X(SYS_mknod,    mknod) \
-    X(SYS_unlink,   unlink) \
-    X(SYS_link,     link) \
-    X(SYS_mkdir,    mkdir) \
-    X(SYS_close,    close) \
-    X(SYS_poweroff, poweroff) \
-    X(SYS_trace,    trace)
+    X(SYS_fork,       fork) \
+    X(SYS_exit,       exit) \
+    X(SYS_wait,       wait) \
+    X(SYS_pipe,       pipe) \
+    X(SYS_read,       read) \
+    X(SYS_kill,       kill) \
+    X(SYS_exec,       exec) \
+    X(SYS_fstat,      fstat) \
+    X(SYS_chdir,      chdir) \
+    X(SYS_dup,        dup) \
+    X(SYS_getpid,     getpid) \
+    X(SYS_sbrk,       sbrk) \
+    X(SYS_pause,      pause) \
+    X(SYS_uptime,     uptime) \
+    X(SYS_open,       open) \
+    X(SYS_write,      write) \
+    X(SYS_mknod,      mknod) \
+    X(SYS_unlink,     unlink) \
+    X(SYS_link,       link) \
+    X(SYS_mkdir,      mkdir) \
+    X(SYS_close,      close) \
+    X(SYS_poweroff,   poweroff) \
+    X(SYS_trace,      trace) \
+    X(SYS_sigalarm,   sigalarm) \
+    X(SYS_sigreturn,  sigreturn) \
 
 // Syscalls
 #define X(num, name) extern uint64 sys_##name(void);

@@ -29,6 +29,23 @@ trapinithart(void)
   w_stvec((uint64)kernelvec);
 }
 
+
+void 
+alarmclock(int which_dev) {
+  struct proc *p = myproc();
+
+  if(which_dev == 2 && p != 0 && p->alarm_on == 0) {
+    struct trapframe *tf = kalloc();
+    memmove(tf, p->trapframe, PGSIZE);
+    p->alarm_tf = tf;
+    
+    if((++p->cur_ticks) >= p->ticks) {
+      p->trapframe->epc = p->handler;
+      p->alarm_on = 1;
+    }
+  }
+}
+
 //
 // handle an interrupt, exception, or system call from user space.
 // called from, and returns to, trampoline.S
@@ -67,7 +84,7 @@ usertrap(void)
 
     syscall();
   } else if((which_dev = devintr()) != 0){
-    // ok
+    alarmclock(which_dev);
   } else if((r_scause() == 15 || r_scause() == 13) &&
             vmfault(p->pagetable, r_stval(), (r_scause() == 13)? 1 : 0) != 0) {
     // page fault on lazily-allocated page
