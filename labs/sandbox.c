@@ -13,8 +13,8 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (trace(atoi(argv[1])) < 0) {
-        fprintf(2, "%s: trace failed\n", argv[0]);
+    if (sandbox(atoi(argv[1])) < 0) {
+        fprintf(2, "%s: sandbox failed\n", argv[0]);
         exit(1);
     }
     
@@ -24,6 +24,6 @@ int main(int argc, char *argv[])
 
     nargv[argc - 2] = 0;
     exec(nargv[0], nargv);
-    printf("trace: exec failed\n");
+    printf("sandbox: exec failed\n");
     exit(0);
 }

@@ -279,6 +279,7 @@ kfork(void)
   *(np->trapframe) = *(p->trapframe);
 
   np->tracemask = p->tracemask;
+  np->sandboxmask = p->sandboxmask;
 
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;

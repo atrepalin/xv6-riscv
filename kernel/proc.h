@@ -93,6 +93,7 @@ struct proc {
   int pid;                     // Process ID
 
   int tracemask;
+  int sandboxmask;
 
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process

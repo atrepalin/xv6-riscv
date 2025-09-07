@@ -25,6 +25,7 @@ char* sys_sbrk(int,int);
 int pause(int);
 int uptime(void);
 int trace(int);
+int sandbox(int);
 int poweroff(void);
 int sigalarm(int ticks, void (*handler)());
 int sigreturn(void);

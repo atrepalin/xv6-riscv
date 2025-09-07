@@ -105,6 +105,7 @@ argstr(int n, char *buf, int max)
     X(SYS_trace,      trace) \
     X(SYS_sigalarm,   sigalarm) \
     X(SYS_sigreturn,  sigreturn) \
+    X(SYS_sandbox,    sandbox) \
 
 // Syscalls
 #define X(num, name) extern uint64 sys_##name(void);
@@ -136,14 +137,17 @@ syscall(void)
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
-    p->trapframe->a0 = syscalls[num]();
+    if(p->sandboxmask & 1 << num)
+      p->trapframe->a0 = -1;
+    else
+      p->trapframe->a0 = syscalls[num]();
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);
     p->trapframe->a0 = -1;
   }
 
-  if (p->tracemask >> num) {
+  if (p->tracemask & 1 << num) {
     printf("%d: syscall %s -> %ld\n", 
         p->pid, syscallnames[num], p->trapframe->a0);
   }

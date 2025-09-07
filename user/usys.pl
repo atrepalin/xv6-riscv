@@ -46,3 +46,4 @@ entry("poweroff");
 entry("trace");
 entry("sigalarm");
 entry("sigreturn");
+entry("sandbox");

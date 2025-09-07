@@ -32,6 +32,7 @@ OBJS = \
   $K/virtio_disk.o \
   $K/trace.o \
   $K/alarm.o \
+  $K/sandbox.o \
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin
