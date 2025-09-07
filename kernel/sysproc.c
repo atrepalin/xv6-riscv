@@ -105,3 +105,14 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// power off the system
+uint64
+sys_poweroff(void)
+{
+  printf("Powering off...\n");
+  (*(volatile uint32 *) 0x100000) = 0x5555;
+  panic("sys_poweroff");
+
+  return 0;
+}

@@ -45,6 +45,8 @@ kvmmake(void)
   // the highest virtual address in the kernel.
   kvmmap(kpgtbl, TRAMPOLINE, (uint64)trampoline, PGSIZE, PTE_R | PTE_X);
 
+  kvmmap(kpgtbl, 0x100000, 0x100000, PGSIZE, PTE_R | PTE_W);
+
   // allocate and map a kernel stack for each process.
   proc_mapstacks(kpgtbl);
   

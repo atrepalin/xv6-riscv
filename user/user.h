@@ -44,6 +44,13 @@ char* sbrklazy(int);
 void fprintf(int, const char*, ...) __attribute__ ((format (printf, 2, 3)));
 void printf(const char*, ...) __attribute__ ((format (printf, 1, 2)));
 
+// scanf.c
+int fscanf(int, const char*, ...) __attribute__ ((format (scanf, 2, 3)));
+int scanf(const char*, ...) __attribute__ ((format (scanf, 1, 2)));
+
 // umalloc.c
 void* malloc(uint);
 void free(void*);
+
+// sys.c
+uint64 poweroff(void);

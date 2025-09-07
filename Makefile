@@ -94,7 +94,7 @@ $K/%.o: $K/%.S
 tags: $(OBJS)
 	etags kernel/*.S kernel/*.c
 
-ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/umalloc.o
+ULIB = $U/ulib.o $U/usys.o $U/printf.o $U/scanf.o $U/umalloc.o
 
 _%: %.o $(ULIB) $U/user.ld
 	$(LD) $(LDFLAGS) -T $U/user.ld -o $@ $< $(ULIB)
@@ -122,6 +122,11 @@ mkfs/mkfs: mkfs/mkfs.c $K/fs.h $K/param.h
 # http://www.gnu.org/software/make/manual/html_node/Chained-Rules.html
 .PRECIOUS: %.o
 
+L = labs
+
+LABCS = $(wildcard $(L)/*.c)
+LABEXE = $(patsubst $(L)/%.c, $L/_%, $(LABCS))
+
 UPROGS=\
 	$U/_cat\
 	$U/_echo\
@@ -142,6 +147,9 @@ UPROGS=\
 	$U/_logstress\
 	$U/_forphan\
 	$U/_dorphan\
+	$U/_exit\
+	$U/_clear\
+	$(LABEXE)
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
