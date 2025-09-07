@@ -34,7 +34,7 @@ void
 alarmclock(int which_dev) {
   struct proc *p = myproc();
 
-  if(which_dev == 2 && p != 0 && p->alarm_on == 0) {
+  if(which_dev == 2 && p != 0 && p->alarm_on == 0 && p->ticks > 0) {
     struct trapframe *tf = kalloc();
     memmove(tf, p->trapframe, PGSIZE);
     p->alarm_tf = tf;

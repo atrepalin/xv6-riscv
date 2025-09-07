@@ -55,3 +55,10 @@ int scanf(const char*, ...) __attribute__ ((format (scanf, 1, 2)));
 // umalloc.c
 void* malloc(uint);
 void free(void*);
+
+// uthread.c
+void thread_init();
+void thread_schedule();
+void thread_create(void (*func)());
+void thread_yield();
+void thread_exit();
