@@ -47,7 +47,8 @@ int main()
     
     int max;
 
-    fscanf(0, "%d", &max);
+    printf("Enter maximum: ");
+    scanf("%d", &max);
 
     for(int i = 2; i <= max; i++)
     {
