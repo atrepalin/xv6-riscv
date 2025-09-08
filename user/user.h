@@ -29,6 +29,7 @@ int sandbox(int);
 int poweroff(void);
 int sigalarm(int ticks, void (*handler)());
 int sigreturn(void);
+int log_time(void);
 
 // ulib.c
 int stat(const char*, struct stat*);

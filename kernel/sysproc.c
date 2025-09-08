@@ -93,6 +93,12 @@ sys_kill(void)
   return kkill(pid);
 }
 
+uint64
+sys_log_time(void) {
+  myproc()->log_time = 1;
+  return 0;
+}
+
 // return how many clock tick interrupts have occurred
 // since start.
 uint64
@@ -112,7 +118,6 @@ sys_poweroff(void)
 {
   printf("Powering off...\n");
   (*(volatile uint32 *) 0x100000) = 0x5555;
-  panic("sys_poweroff");
 
   return 0;
 }

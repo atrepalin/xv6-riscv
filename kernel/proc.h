@@ -125,4 +125,5 @@ struct proc {
   uint64 waittime;     
   uint64 lastrun;      
   uint64 lastwait;  
+  int log_time;
 };

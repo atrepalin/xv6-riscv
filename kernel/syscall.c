@@ -106,6 +106,7 @@ argstr(int n, char *buf, int max)
     X(SYS_sigalarm,   sigalarm) \
     X(SYS_sigreturn,  sigreturn) \
     X(SYS_sandbox,    sandbox) \
+    X(SYS_log_time,   log_time) \
 
 // Syscalls
 #define X(num, name) extern uint64 sys_##name(void);

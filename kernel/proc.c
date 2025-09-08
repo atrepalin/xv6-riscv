@@ -50,7 +50,6 @@ static void mlfq_enqueue(struct proc *p, int lvl){
   p->budget = quantum_for(lvl);
   p->ts_exhausted = 0;
   qpush(lvl, p);
-  p->lastwait = ticks;
 }
 
 static void mlfq_enqueue_top(struct proc *p){
@@ -230,6 +229,7 @@ found:
   p->context.sp = p->kstack + PGSIZE;
 
   p->cur_ticks = 0;
+  p->log_time = 0;
 
 #ifdef MLFQ
   qinit(p);
@@ -373,6 +373,7 @@ kfork(void)
 
   np->tracemask = p->tracemask;
   np->sandboxmask = p->sandboxmask;
+  np->log_time = p->log_time;
 
   // Cause fork to return 0 in the child.
   np->trapframe->a0 = 0;
@@ -431,8 +432,9 @@ kexit(int status)
   if(p == initproc)
     panic("init exiting");
 
-  printf("\npid %d: cputime=%ld, waittime=%ld\n",
-      p->pid, p->cputime, p->waittime);
+  if(p->log_time)
+    printf("pid %d: cputime=%ld, waittime=%ld\n",
+        p->pid, p->cputime, p->waittime);
 
   // Close all open files.
   for(int fd = 0; fd < NOFILE; fd++){
@@ -551,15 +553,14 @@ scheduler(void)
 
         // метрики
         p->lastrun = ticks;
-        if(p->lastwait) {
-          p->waittime += ticks - p->lastwait;
-        }
-        p->lastwait = ticks;
+        if(p->lastwait) p->waittime += ticks - p->lastwait;
 
         p->state = RUNNING;
         c->proc = p;
         
         swtch(&c->context, &p->context);
+
+        p->lastwait = ticks;
 
         // Process is done running for now.
         // It should have changed its p->state before coming back.
@@ -610,9 +611,9 @@ scheduler(void)
     // вернулись из процесса
     c->proc = 0;
 
-    // если процесс остался RUNNABLE — решаем, куда возвращать
+    // если процесс остался RUNNABLE - решаем, куда возвращать
     if(p->state == RUNNABLE){
-      // если исчерпал квант — демотируем, иначе остаёмся на уровне
+      // если исчерпал квант - демотируем, иначе остаёмся на уровне
       if(p->ts_exhausted){
         mlfq_demote_and_enqueue(p);
       }else{
@@ -620,6 +621,9 @@ scheduler(void)
         mlfq_enqueue(p, p->qlevel);
       }
     }
+    
+    p->lastwait = ticks;
+
     release(&p->lock);
   }
 }
