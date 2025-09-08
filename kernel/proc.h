@@ -1,3 +1,5 @@
+#include "defs.h"
+
 // Saved registers for kernel context switches.
 struct context {
   uint64 ra;
@@ -113,4 +115,14 @@ struct proc {
   int cur_ticks;
   struct trapframe *alarm_tf; // cache the trapframe when timer fires
   int alarm_on;
+
+#ifdef MLFQ
+  int qlevel;          
+  int budget;          
+  int ts_exhausted; 
+#endif 
+  uint64 cputime;      
+  uint64 waittime;     
+  uint64 lastrun;      
+  uint64 lastwait;  
 };

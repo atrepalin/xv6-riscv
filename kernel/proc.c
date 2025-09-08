@@ -4,11 +4,94 @@
 #include "riscv.h"
 #include "spinlock.h"
 #include "proc.h"
-#include "defs.h"
 
-struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
+
+#ifdef MLFQ
+struct runq {
+  struct proc *q[NPROC];
+  int head, tail;
+};
+
+struct runq mlfq[NQUEUE];
+
+static inline int qempty(int lvl){ return mlfq[lvl].head == mlfq[lvl].tail; }
+
+static void qpush(int lvl, struct proc *p){
+  mlfq[lvl].q[mlfq[lvl].tail % NPROC] = p;
+  mlfq[lvl].tail++;
+}
+
+static struct proc* qpop(int lvl){
+  if(qempty(lvl)) return 0;
+  struct proc *p = mlfq[lvl].q[mlfq[lvl].head % NPROC];
+  mlfq[lvl].head++;
+
+  return p;
+}
+
+static int quantum_for(int lvl){
+  switch(lvl){
+    case 0: return Q0_QUANTUM;
+    case 1: return Q1_QUANTUM;
+    default: return Q2_QUANTUM;
+  }
+}
+
+static void qinit(struct proc* p) {
+  p->qlevel = 0;
+  p->budget = quantum_for(0);
+  p->ts_exhausted = 0;
+}
+
+static void mlfq_enqueue(struct proc *p, int lvl){
+  p->qlevel = lvl;
+  p->budget = quantum_for(lvl);
+  p->ts_exhausted = 0;
+  qpush(lvl, p);
+  p->lastwait = ticks;
+}
+
+static void mlfq_enqueue_top(struct proc *p){
+  mlfq_enqueue(p, 0);
+}
+
+static void mlfq_demote_and_enqueue(struct proc *p){
+  int lvl = p->qlevel;
+  if(lvl < NQUEUE - 1) lvl++;
+  mlfq_enqueue(p, lvl);
+}
+
+static struct proc* mlfq_pick_next(void){
+  for(int lvl=0; lvl<NQUEUE; lvl++){
+    struct proc *p = qpop(lvl);
+    if(p) return p;
+  }
+  return 0;
+}
+
+void
+mlfq_boost_all(void)
+{
+  // Сбросить все очереди
+  for(int lvl=0; lvl < NQUEUE; lvl++){
+    mlfq[lvl].head = mlfq[lvl].tail = 0;
+  }
+  // Пройти по всем процессам и RUNNABLE отправить в Q0
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
+    if(p->state == RUNNABLE){
+      mlfq_enqueue_top(p);
+    }
+    // Сброс бюджетов тем, кто RUNNING, оставим на совесть текущего кванта
+    release(&p->lock);
+  }
+}
+#endif
+
+struct cpu cpus[NCPU];
 
 struct proc *initproc;
 
@@ -148,6 +231,12 @@ found:
 
   p->cur_ticks = 0;
 
+#ifdef MLFQ
+  qinit(p);
+#endif
+
+  p->cputime = p->waittime = p->lastrun = p->lastwait = 0;
+
   return p;
 }
 
@@ -230,6 +319,10 @@ userinit(void)
 
   p->state = RUNNABLE;
 
+#ifdef MLFQ
+  mlfq_enqueue_top(initproc);
+#endif
+
   release(&p->lock);
 }
 
@@ -302,6 +395,11 @@ kfork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+
+#ifdef MLFQ
+  mlfq_enqueue_top(np);
+#endif
+
   release(&np->lock);
 
   return pid;
@@ -332,6 +430,9 @@ kexit(int status)
 
   if(p == initproc)
     panic("init exiting");
+
+  printf("\npid %d: cputime=%ld, waittime=%ld\n",
+      p->pid, p->cputime, p->waittime);
 
   // Close all open files.
   for(int fd = 0; fd < NOFILE; fd++){
@@ -423,6 +524,7 @@ kwait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+#ifndef MLFQ
 void
 scheduler(void)
 {
@@ -446,8 +548,17 @@ scheduler(void)
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
         // before jumping back to us.
+
+        // метрики
+        p->lastrun = ticks;
+        if(p->lastwait) {
+          p->waittime += ticks - p->lastwait;
+        }
+        p->lastwait = ticks;
+
         p->state = RUNNING;
         c->proc = p;
+        
         swtch(&c->context, &p->context);
 
         // Process is done running for now.
@@ -463,6 +574,56 @@ scheduler(void)
     }
   }
 }
+#else
+void
+scheduler(void)
+{
+  struct cpu *c = mycpu();
+  c->proc = 0;
+
+  for(;;){
+    intr_on();
+
+    struct proc *p = mlfq_pick_next();
+
+    if(p == 0){
+      // никого нет - можно wfi
+      asm volatile("wfi");
+      continue;
+    }
+
+    acquire(&p->lock);
+    if(p->state != RUNNABLE){
+      release(&p->lock);
+      continue;
+    }
+
+    p->state = RUNNING;
+    c->proc = p;
+
+    // метрики
+    p->lastrun = ticks;
+    if(p->lastwait) p->waittime += ticks - p->lastwait;
+
+    swtch(&c->context, &p->context);
+
+    // вернулись из процесса
+    c->proc = 0;
+
+    // если процесс остался RUNNABLE — решаем, куда возвращать
+    if(p->state == RUNNABLE){
+      // если исчерпал квант — демотируем, иначе остаёмся на уровне
+      if(p->ts_exhausted){
+        mlfq_demote_and_enqueue(p);
+      }else{
+        // добровольная уступка / I/O — в конец своей очереди
+        mlfq_enqueue(p, p->qlevel);
+      }
+    }
+    release(&p->lock);
+  }
+}
+#endif
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
@@ -582,6 +743,9 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
+#ifdef MLFQ
+        mlfq_enqueue_top(p);
+#endif
       }
       release(&p->lock);
     }

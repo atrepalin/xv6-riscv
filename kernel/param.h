@@ -13,3 +13,9 @@
 #define MAXPATH      128   // maximum file path name
 #define USERSTACK    1     // user stack pages
 
+
+#define NQUEUE       3
+#define Q0_QUANTUM   1
+#define Q1_QUANTUM   2
+#define Q2_QUANTUM   4
+#define BOOST_TICKS  100

@@ -97,9 +97,30 @@ usertrap(void)
   if(killed(p))
     kexit(-1);
 
+#ifndef MLFQ
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  if(which_dev == 2){
+    struct proc *p = myproc();
+    if(p && p->state == RUNNING){
+      p->cputime++;
+    }
+
     yield();
+  }
+#else
+  if(which_dev == 2){
+    struct proc *p = myproc();
+    if(p && p->state == RUNNING){
+      p->budget--;
+      p->cputime++;
+      if(p->budget <= 0){
+        p->ts_exhausted = 1;
+        yield();
+      }
+    }
+    intr_on();
+  }
+#endif
 
   prepare_return();
 
@@ -178,12 +199,22 @@ kerneltrap()
   w_sstatus(sstatus);
 }
 
+#ifdef MLFQ
+extern void mlfq_boost_all(void);
+#endif
+
 void
 clockintr()
 {
   if(cpuid() == 0){
     acquire(&tickslock);
     ticks++;
+
+#ifdef MLFQ
+    if(ticks % BOOST_TICKS == 0)
+      mlfq_boost_all();
+#endif
+
     wakeup(&ticks);
     release(&tickslock);
   }
