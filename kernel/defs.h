@@ -184,4 +184,8 @@ void            virtio_disk_intr(void);
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 
-#define MLFQ
+#define ROUND_ROBIN 0
+#define MLFQ        1
+#define CFS         2
+
+#define SCHEDULER CFS

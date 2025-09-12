@@ -1,0 +1,37 @@
+=== CPU test (16 processes) ===
+pid 7: cputime=3, waittime=12
+pid 6: cputime=3, waittime=12
+pid 11: cputime=3, waittime=11
+pid 10: cputime=3, waittime=11
+pid 4: cputime=4, waittime=15
+pid 5: cputime=4, waittime=14
+pid 12: cputime=4, waittime=14
+pid 8: cputime=4, waittime=14
+pid 14: cputime=4, waittime=14
+pid 15: cputime=4, waittime=13
+pid 13: cputime=4, waittime=14
+pid 19: cputime=4, waittime=12
+pid 17: cputime=5, waittime=13
+pid 9: cputime=5, waittime=14
+pid 16: cputime=5, waittime=12
+pid 18: cputime=6, waittime=13
+CPU test done
+
+=== IO test (16 processes) ===
+pid 21: cputime=0, waittime=10
+pid 34: cputime=0, waittime=16
+pid 20: cputime=0, waittime=21
+pid 22: cputime=0, waittime=22
+pid 24: cputime=0, waittime=27
+pid 23: cputime=0, waittime=34
+pid 25: cputime=0, waittime=45
+pid 26: cputime=0, waittime=48
+pid 27: cputime=0, waittime=53
+pid 29: cputime=0, waittime=57
+pid 28: cputime=0, waittime=64
+pid 32: cputime=0, waittime=64
+pid 30: cputime=0, waittime=68
+pid 33: cputime=0, waittime=78
+pid 31: cputime=0, waittime=82
+pid 35: cputime=0, waittime=85
+IO test done

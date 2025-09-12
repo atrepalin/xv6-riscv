@@ -8,7 +8,7 @@
 
 struct proc proc[NPROC];
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
 struct runq {
   struct proc *q[NPROC];
   int head, tail;
@@ -231,8 +231,10 @@ found:
   p->cur_ticks = 0;
   p->log_time = 0;
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
   qinit(p);
+#elif SCHEDULER == CFS
+  p->vruntime = 0;
 #endif
 
   p->cputime = p->waittime = p->lastrun = p->lastwait = 0;
@@ -319,7 +321,7 @@ userinit(void)
 
   p->state = RUNNABLE;
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
   mlfq_enqueue_top(initproc);
 #endif
 
@@ -397,7 +399,7 @@ kfork(void)
   acquire(&np->lock);
   np->state = RUNNABLE;
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
   mlfq_enqueue_top(np);
 #endif
 
@@ -526,7 +528,7 @@ kwait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
-#ifndef MLFQ
+#if SCHEDULER == ROUND_ROBIN
 void
 scheduler(void)
 {
@@ -575,7 +577,7 @@ scheduler(void)
     }
   }
 }
-#else
+#elif SCHEDULER == MLFQ
 void
 scheduler(void)
 {
@@ -584,6 +586,7 @@ scheduler(void)
 
   for(;;){
     intr_on();
+    intr_off();
 
     struct proc *p = mlfq_pick_next();
 
@@ -627,6 +630,61 @@ scheduler(void)
     release(&p->lock);
   }
 }
+#elif SCHEDULER == CFS
+void
+scheduler(void)
+{
+  struct proc *p;
+  struct proc *chosen;
+  struct cpu *c = mycpu();
+
+  c->proc = 0;
+  for(;;){
+    intr_on();
+    intr_off();
+
+    chosen = 0;
+
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        if(chosen == 0) {
+          chosen = p;
+        } else if (p->vruntime < chosen->vruntime) {
+          release(&chosen->lock);
+          chosen = p;
+        } else {
+          release(&p->lock);
+        }
+      } else {
+        release(&p->lock);
+      }
+    }
+
+    if(chosen == 0) {
+      asm volatile("wfi");
+      continue;
+    }
+
+    chosen->state = RUNNING;
+    c->proc = chosen;
+
+    // метрики
+    chosen->lastrun = ticks;
+    if(chosen->lastwait)
+      chosen->waittime += ticks - chosen->lastwait;
+
+    swtch(&c->context, &chosen->context);
+
+    // вернулись из процесса
+    c->proc = 0;
+
+    chosen->lastwait = ticks;
+
+    release(&chosen->lock);
+  }
+}
+
 #endif
 
 // Switch to scheduler.  Must hold only p->lock
@@ -747,7 +805,7 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
         mlfq_enqueue_top(p);
 #endif
       }

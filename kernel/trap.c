@@ -97,8 +97,8 @@ usertrap(void)
   if(killed(p))
     kexit(-1);
 
-#ifndef MLFQ
   // give up the CPU if this is a timer interrupt.
+#if SCHEDULER == ROUND_ROBIN
   if(which_dev == 2){
     struct proc *p = myproc();
     if(p && p->state == RUNNING){
@@ -107,7 +107,7 @@ usertrap(void)
 
     yield();
   }
-#else
+#elif SCHEDULER == MLFQ
   if(which_dev == 2){
     struct proc *p = myproc();
     if(p && p->state == RUNNING){
@@ -118,7 +118,16 @@ usertrap(void)
         yield();
       }
     }
-    intr_on();
+  }
+#elif SCHEDULER == CFS
+  if(which_dev == 2){
+    struct proc *p = myproc();
+    if(p && p->state == RUNNING){
+      p->cputime++;
+      p->vruntime++;
+    }
+
+    yield();
   }
 #endif
 
@@ -199,7 +208,7 @@ kerneltrap()
   w_sstatus(sstatus);
 }
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
 extern void mlfq_boost_all(void);
 #endif
 
@@ -210,7 +219,7 @@ clockintr()
     acquire(&tickslock);
     ticks++;
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
     if(ticks % BOOST_TICKS == 0)
       mlfq_boost_all();
 #endif

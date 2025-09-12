@@ -116,11 +116,14 @@ struct proc {
   struct trapframe *alarm_tf; // cache the trapframe when timer fires
   int alarm_on;
 
-#ifdef MLFQ
+#if SCHEDULER == MLFQ
   int qlevel;          
   int budget;          
   int ts_exhausted; 
+#elif SCHEDULER == CFS
+  uint64 vruntime;
 #endif 
+
   uint64 cputime;      
   uint64 waittime;     
   uint64 lastrun;      

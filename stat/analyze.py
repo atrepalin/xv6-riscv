@@ -85,6 +85,7 @@ if __name__ == "__main__":
     files = [
         ("Round Robin", "round_robin.txt"),
         ("MLFQ", "MLFQ.txt"),
+        ("CFS", "CFS.txt")
     ]
 
     all_results = [load_file(path, label) for label, path in files]
