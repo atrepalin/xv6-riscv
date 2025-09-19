@@ -29,3 +29,6 @@
 
 #define SYS_mmap        28
 #define SYS_munmap      29
+
+#define SYS_load        30
+#define SYS_symbol      31

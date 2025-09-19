@@ -388,6 +388,13 @@ kfork(void)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
+
+  for(i = 0; i < SYM_SIZE; i++) {
+    if(p->symlist[i].valid) {
+      p->symlist[i].ref++;
+      np->symlist[i] = p->symlist[i];
+    }
+  }
   
   copy_all_vma(p, np);
 
@@ -469,6 +476,22 @@ kexit(int status)
 
   p->xstate = status;
   p->state = ZOMBIE;
+
+  for(int i = 0; i < SYM_SIZE; i++) {
+    if(p->symlist[i].valid && --p->symlist[i].ref == 0) {
+      struct symlist *symlist = &p->symlist[i];
+      struct symnode *node = symlist->head, *prev;
+
+      symlist->valid = 0;
+      symlist->head = symlist->tail = 0;
+
+      while(node){
+        prev = node;
+        node = node->next;
+        kfree(prev);
+      }
+    }
+  }
   
   free_all_vma(p);
 

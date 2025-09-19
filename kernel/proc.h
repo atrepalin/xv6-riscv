@@ -1,4 +1,5 @@
 #include "defs.h"
+#include "ld.h"
 
 // Saved registers for kernel context switches.
 struct context {
@@ -142,4 +143,6 @@ struct proc {
   int log_time;
 
   struct vm_area vma[VMA_SIZE];
+
+  struct symlist symlist[SYM_SIZE];
 };

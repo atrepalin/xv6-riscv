@@ -34,6 +34,7 @@ OBJS = \
   $K/alarm.o \
   $K/sandbox.o \
   $K/mmap.o \
+  $K/ld.o \
 
 # riscv64-unknown-elf- or riscv64-linux-gnu-
 # perhaps in /opt/riscv/bin

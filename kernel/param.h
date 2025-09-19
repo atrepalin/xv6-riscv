@@ -21,3 +21,4 @@
 #define BOOST_TICKS  100
 
 #define VMA_SIZE    100
+#define SYM_SIZE    8

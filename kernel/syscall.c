@@ -114,6 +114,8 @@ argstr(int n, char *buf, int max)
     X(SYS_log_time,   log_time) \
     X(SYS_mmap,       mmap) \
     X(SYS_munmap,     munmap) \
+    X(SYS_load,       load) \
+    X(SYS_symbol,     symbol) \
 
 // Syscalls
 #define X(num, name) extern uint64 sys_##name(void);

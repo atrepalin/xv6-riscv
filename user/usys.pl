@@ -50,3 +50,5 @@ entry("sandbox");
 entry("log_time");
 entry("mmap");
 entry("munmap");
+entry("load");
+entry("symbol");
