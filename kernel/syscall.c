@@ -59,6 +59,11 @@ argint(int n, int *ip)
   *ip = argraw(n);
 }
 
+void 
+arglong(int n, uint64 *lp) {
+  *lp = argraw(n);
+}
+
 // Retrieve an argument as a pointer.
 // Doesn't check for legality, since
 // copyin/copyout will do that.
@@ -107,6 +112,8 @@ argstr(int n, char *buf, int max)
     X(SYS_sigreturn,  sigreturn) \
     X(SYS_sandbox,    sandbox) \
     X(SYS_log_time,   log_time) \
+    X(SYS_mmap,       mmap) \
+    X(SYS_munmap,     munmap) \
 
 // Syscalls
 #define X(num, name) extern uint64 sys_##name(void);

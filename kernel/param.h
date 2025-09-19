@@ -19,3 +19,5 @@
 #define Q1_QUANTUM   2
 #define Q2_QUANTUM   4
 #define BOOST_TICKS  100
+
+#define VMA_SIZE    100

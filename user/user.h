@@ -1,3 +1,5 @@
+#include "kernel/mappings.h"
+
 #define SBRK_ERROR ((char *)-1)
 
 struct stat;
@@ -30,6 +32,8 @@ int poweroff(void);
 int sigalarm(int ticks, void (*handler)());
 int sigreturn(void);
 int log_time(void);
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, size_t offset);
+int munmap(void *addr, size_t length);
 
 // ulib.c
 int stat(const char*, struct stat*);

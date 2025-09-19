@@ -100,6 +100,9 @@ struct spinlock pid_lock;
 extern void forkret(void);
 static void freeproc(struct proc *p);
 
+extern void free_all_vma(struct proc *p);
+extern void copy_all_vma(struct proc *p, struct proc *np);
+
 extern char trampoline[]; // trampoline.S
 
 // helps ensure that wakeups of wait()ing
@@ -385,6 +388,8 @@ kfork(void)
     if(p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
+  
+  copy_all_vma(p, np);
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
@@ -464,6 +469,8 @@ kexit(int status)
 
   p->xstate = status;
   p->state = ZOMBIE;
+  
+  free_all_vma(p);
 
   release(&wait_lock);
 

@@ -48,3 +48,5 @@ entry("sigalarm");
 entry("sigreturn");
 entry("sandbox");
 entry("log_time");
+entry("mmap");
+entry("munmap");
