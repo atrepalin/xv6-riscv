@@ -144,5 +144,5 @@ struct proc {
 
   struct vm_area vma[VMA_SIZE];
 
-  struct symlist symlist[SYM_SIZE];
+  struct symlist *symlist[SYM_SIZE];
 };

@@ -75,8 +75,8 @@ sys_load(void) {
   int handle;
 
   for(handle = 0; handle < SYM_SIZE; handle++){
-    if(!p->symlist[handle].valid){
-      symlist = &p->symlist[handle];
+    if(p->symlist[handle] && !p->symlist[handle]->valid){
+      symlist = p->symlist[handle];
       symlist->valid = 1;
       symlist->ref = 1;
       break;
@@ -119,7 +119,7 @@ sys_load(void) {
           && ELF_ST_TYPE(sym.info) == STT_FUNC){
           char *sname = strtab + sym.name;
           
-          struct symnode *node = kalloc();
+          struct symnode *node = kmalloc(sizeof(struct symnode));
           if(node == 0) goto bad;
           safestrcpy(node->name, sname, sizeof(node->name));
           node->addr = base + sym.value;
@@ -167,9 +167,9 @@ sys_symbol(void) {
   argint(1, &handle);
 
   struct proc *p = myproc();
-  struct symlist *symlist = &p->symlist[handle];
+  struct symlist *symlist = p->symlist[handle];
 
-  if(!symlist->valid) return -1;
+  if(!symlist || !symlist->valid) return -1;
 
   struct symnode *node = symlist->head;
 
@@ -181,4 +181,28 @@ sys_symbol(void) {
   }
 
   return -1;
+}
+
+void
+free_imports() {
+  struct proc *p = myproc();
+
+  for(int i = 0; i < SYM_SIZE; i++) {
+    if(p->symlist[i] && --p->symlist[i]->ref <= 0) {
+      if(p->symlist[i]->valid)
+      {
+        struct symlist *symlist = p->symlist[i];
+        struct symnode *node = symlist->head, *prev;
+
+        while(node){
+          prev = node;
+          node = node->next;
+          kmfree(prev);
+        }
+      }
+      
+      kmfree(p->symlist[i]);
+      p->symlist[i] = 0;
+    }
+  }
 }

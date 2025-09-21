@@ -242,6 +242,11 @@ found:
 
   p->cputime = p->waittime = p->lastrun = p->lastwait = 0;
 
+  for(int i = 0; i < SYM_SIZE; i++) {
+    p->symlist[i] = kmalloc(sizeof(struct symlist));
+    memset(p->symlist[i], 0, sizeof(struct symlist));
+  }
+
   return p;
 }
 
@@ -390,8 +395,9 @@ kfork(void)
   np->cwd = idup(p->cwd);
 
   for(i = 0; i < SYM_SIZE; i++) {
-    if(p->symlist[i].valid) {
-      p->symlist[i].ref++;
+    if(p->symlist[i] && p->symlist[i]->valid) {
+      kmfree(np->symlist[i]);
+      p->symlist[i]->ref++;
       np->symlist[i] = p->symlist[i];
     }
   }
@@ -476,23 +482,8 @@ kexit(int status)
 
   p->xstate = status;
   p->state = ZOMBIE;
-
-  for(int i = 0; i < SYM_SIZE; i++) {
-    if(p->symlist[i].valid && --p->symlist[i].ref == 0) {
-      struct symlist *symlist = &p->symlist[i];
-      struct symnode *node = symlist->head, *prev;
-
-      symlist->valid = 0;
-      symlist->head = symlist->tail = 0;
-
-      while(node){
-        prev = node;
-        node = node->next;
-        kfree(prev);
-      }
-    }
-  }
   
+  free_imports();
   free_all_vma(p);
 
   release(&wait_lock);

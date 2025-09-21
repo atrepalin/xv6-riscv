@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+void free_imports();
+
 struct symnode {
   char name[32];
   uint64 addr;

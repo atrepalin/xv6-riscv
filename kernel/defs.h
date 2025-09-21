@@ -12,6 +12,11 @@ struct superblock;
 struct symnode;
 struct symlist;
 
+// alloc.c
+void*           kmalloc(int size);
+void            kmfree(void *ptr);
+void            kminit(void);
+
 // bio.c
 void            binit(void);
 struct buf*     bread(uint, uint);
@@ -192,4 +197,4 @@ void            virtio_disk_intr(void);
 #define MLFQ        1
 #define CFS         2
 
-#define SCHEDULER CFS
+#define SCHEDULER MLFQ
