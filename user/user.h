@@ -35,7 +35,7 @@ int log_time(void);
 void *mmap(void *addr, size_t length, int prot, int flags, int fd, size_t offset);
 int munmap(void *addr, size_t length);
 int load(const char*);
-uint64 symbol(const char*, int);
+void* symbol(const char*, int);
 
 // ulib.c
 int stat(const char*, struct stat*);
