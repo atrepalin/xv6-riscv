@@ -1,13 +1,16 @@
 #include "kernel/types.h"
 #include "user/user.h"
 
+typedef int (*operator)(int, int);
+typedef void (*entry)(void);
+
 int main()
 {
     int foo = load("foo");
     int bar = load("bar");
 
-    int (*sum)(int, int), (*sub)(int, int), (*mul)(int, int), (*div)(int, int);
-    void (*foo_main)(void), (*bar_main)(void);
+    operator sum, sub, mul, div;
+    entry foo_main, bar_main;
 
     foo_main = symbol("main", foo);
     bar_main = symbol("main", bar);
